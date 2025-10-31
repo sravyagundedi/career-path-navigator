@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Career Path Navigator — Explore. Analyze. Grow.</title>
+
+  <!-- Fonts & D3 -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <!-- Styles: Blue & White theme, polished UI -->
+  <style>
+    /* Elegant background images and theme accents */
+body {
+  background: linear-gradient(180deg, #eaf3ff 0%, #f8fbff 100%);
+  background-image: url('https://www.transparenttextures.com/patterns/cubes.png');
+  background-repeat: repeat;
+  background-size: 600px 600px;
+  background-attachment: fixed;
+}
+
+/* Header with image overlay */
+header.app-header {
+  background: linear-gradient(135deg, rgba(37,99,235,0.95), rgba(37,99,235,0.85)),
+              url('https://images.unsplash.com/photo-1529070538774-1843cb3265df?auto=format&fit=crop&w=1600&q=80');
+  background-size: cover;
+  background-position: center;
+  color: white;
+  border-radius: 12px;
+  padding: 18px 24px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+}
+header.app-header .title, header.app-header .tag { color: #121010; }
+header.app-header .logo {
+  background: rgba(224, 137, 137, 0.2);
+  border: 2px solid rgba(231, 83, 83, 0.3);
+  box-shadow: none;
+}
+
+/* Card subtle transparency */
+.card {
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 32px rgba(2,6,23,0.08);
+}
+
+/* Footer gradient */
+footer {
+  background: linear-gradient(135deg, rgba(188, 199, 223, 0.9), rgba(197, 204, 217, 0.8));
+  color: #fff;
+  padding: 14px 20px;
+  border-radius: 10px;
+  box-shadow: 0 -6px 20px rgba(0,0,0,0.08);
+}
+
+    :root{
+      --bg:#f4f7fb;
+      --card:#ffffff;
+      --text:#0f1724;
+      --muted:#64748b;
+      --blue:#2563eb;
+      --blue-2:#1d4ed8;
+      --accent:#0ea5a4;
+      --glass: rgba(255,255,255,0.7);
+      --shadow: 0 10px 30px rgba(2,6,23,0.08);
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+      background: linear-gradient(180deg,var(--bg), #eef4ff 120%);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding:18px;
+    }
+
+    /* Header */
+    header.app-header{
+      max-width:1400px;margin:0 auto 18px;padding:14px 18px;display:flex;align-items:center;gap:14px;
+    }
+    .logo {
+      width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--blue-2));
+      display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:18px;
+      box-shadow: 0 6px 18px rgba(37,99,235,0.18);
+    }
+    .brand {
+      display:flex;flex-direction:column;line-height:1;
+    }
+    .brand .title{font-size:18px;font-weight:700}
+    .brand .tag{font-size:13px;color:var(--muted)}
+
+    /* Layout */
+    .container{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:1fr 1.8fr;gap:28px;align-items:flex-start}
+    @media (max-width:980px){ .container{grid-template-columns:1fr;padding:0 12px;gap:18px} }
+
+    /* Card */
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:20px;
+      box-shadow:var(--shadow);
+      transition:transform .18s ease, box-shadow .18s ease;
+    }
+    .card:hover{ transform:translateY(-4px); box-shadow:0 18px 40px rgba(2,6,23,0.10) }
+
+    h1,h2,h3{margin:0}
+    .muted{color:var(--muted);font-size:13px}
+
+    /* Left panel specifics */
+    .controls { display:flex;flex-direction:column;gap:12px }
+    label.small{font-weight:600;font-size:13px;color:var(--muted)}
+    select,input,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid #e6eef8;background:#fbfdff}
+    select:focus,input:focus,textarea:focus{outline:none;box-shadow:0 6px 18px rgba(37,99,235,0.08);border-color:var(--blue)}
+
+    .row{display:flex;gap:10px}
+    .row .input{flex:1}
+    .btn{background:var(--blue);color:#fff;padding:10px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:600}
+    .btn.ghost{background:transparent;border:1px solid #e6eef8;color:var(--muted)}
+    .btn.small{padding:8px 10px;font-size:13px}
+
+    /* Chat */
+    .chat-area{height:180px;overflow:auto;padding:12px;border-radius:10px;background:#fbfdff;border:1px solid #eef4ff}
+    .msg{display:inline-block;padding:10px 12px;border-radius:12px;margin:8px 0;max-width:80%;font-size:14px}
+    .msg.user{background:var(--blue);color:#fff;float:right;clear:both}
+    .msg.bot{background:#fff;border:1px solid #eef4ff;color:var(--text);float:left;clear:both}
+
+    /* Selected career & skill UI */
+    #selected-career-panel h3{font-size:16px;margin-bottom:6px}
+    .skill-row{display:flex;align-items:center;gap:12px;margin:8px 0}
+    .skill-label{flex:1;font-weight:600}
+    .slider{width:150px}
+    .progress{height:10px;background:#eef4ff;border-radius:999px;overflow:hidden;width:160px}
+    .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--blue));width:0;transition:width .4s ease}
+    .readiness{min-width:48px;font-weight:700;color:var(--muted)}
+
+    /* Dendrogram card specifics */
+    #dend-container{position:relative}
+    #resetView{position:absolute;right:12px;top:12px;background:rgba(228, 228, 232, 0.929);color:#080808ee;padding:8px 10px;border-radius:8px;font-size:13px;color: rgba(1, 4, 18, 0.929);cursor:pointer;z-index:2;box-shadow:0 8px 20px rgba(246, 247, 248, 0.14)}
+    #explore-hint{position:absolute;left:12px;top:12px;background:rgba(241, 244, 247, 0.85);padding:8px 10px;border-radius:8px;font-size:13px;color: rgba(1, 4, 18, 0.929);z-index:2;border:1px solid #03070e}
+    #dendrogram{height:760px;border-radius:12px;border:1px solid #05264f;background:linear-gradient(180deg,#c1d6df,#c0cedc);overflow:hidden;box-shadow:0 6px 20px rgba(43, 56, 113, 0.04)}
+
+    /* Node styles (text in svg will inherit) */
+    svg text{font-weight:600;fill:var(--text);font-size:13px}
+
+    /* Roadmap */
+    .roadmap{margin-top:12px}
+    .phase{background:#fff;border-radius:10px;padding:12px;border:1px solid #eef4ff;margin-top:10px;box-shadow:0 6px 16px rgba(2,6,23,0.03)}
+    .phase small{color:var(--muted)}
+    .tag{display:inline-block;background:#e5e7eb;color:var(--blue);padding:6px 8px;border-radius:999px;font-weight:700;margin-left:8px}
+
+    footer{max-width:1400px;margin:18px auto 40px;padding:10px 18px;color:var(--muted);font-size:13px;text-align:center}
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="logo" aria-hidden>CP</div>
+    <div class="brand">
+      <div class="title">🎯Career Path Navigator</div>
+      <div class="tag">Explore. Analyze. Grow.</div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="container">
+    <!-- LEFT: controls, chat, skill analyzer -->
+    <section class="card" aria-labelledby="left-heading">
+      <h1 id="left-heading">Career Assistant & Skill Analyzer</h1>
+      <p class="muted">Select a domain or type interests — explore career paths, rate your skills, and get a learning roadmap.</p>
+
+      <div class="controls" role="form" aria-label="career controls">
+        <label class="small">Choose domain</label>
+        <select id="interestDropdown" aria-label="domain dropdown">
+          <option value="">— Select a domain —</option>
+          <option value="stem">STEM (Tech & Engineering)</option>
+          <option value="creative">Creative Fields</option>
+          <option value="medical">Medical & Health</option>
+          <option value="business">Business & Management</option>
+          <option value="humanities">Social Sciences & Humanities</option>
+          <option value="education">Education & Research</option>
+          <option value="law">Law & Governance</option>
+          <option value="environment">Environment & Sustainability</option>
+          <option value="trades">Trades & Applied Professions</option>
+          <option value="media">Media & Communication</option>
+          <option value="sports">Sports & Fitness</option>
+        </select>
+
+        <label class="small">Or type interests (comma-separated)</label>
+        <input id="interests" placeholder="e.g. AI, product design, ecology">
+
+        <div class="row" style="align-items:center">
+          <input id="chat-input" class="input" placeholder="Ask the AI for guidance (optional)">
+          <button class="btn" id="sendBtn">Send</button>
+        </div>
+
+        <div class="chat-area" id="chat-area" aria-live="polite"></div>
+
+        <div id="selected-career-panel" class="card" style="padding:12px;">
+          <h3>No career selected</h3>
+          <p class="muted">Click a career node on the right to inspect skills and rate yourself (0–5).</p>
+        </div>
+
+        <div style="display:flex;gap:10px">
+          <button class="btn" id="analyzeBtn">Analyze Skill Gap</button>
+          <button class="btn ghost" id="sampleBtn">Load Sample (STEM)</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: dendrogram + roadmap -->
+    <section class="card" aria-labelledby="right-heading" style="position:relative">
+      <h2 id="right-heading">Career Dendrogram</h2>
+      <p class="muted">Scroll to zoom, drag to pan — click any leaf to select a career.</p>
+
+      <div id="dend-container" style="margin-top:12px">
+        <div id="explore-hint">Tip: scroll to zoom • drag to pan • click a career</div>
+        <button id="resetView" aria-label="reset view">Reset View</button>
+        <div id="dendrogram" role="img" aria-label="career dendrogram"></div>
+      </div>
+
+      <div class="roadmap" id="roadmap" aria-live="polite">
+        <h3>Personalized Learning Roadmap</h3>
+        <small class="muted">Select a career to generate roadmap.</small>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    © 2025 Career Path Navigator — Empowering students to choose wisely.
+  </footer>
+
+  <!-- JavaScript: dataset + dendrogram + chat placeholder + analyzer -->
+  <script>
+  /* -------------------------
+     Data: domains & career skills
+     (expanded, real-world careers — trimmed for readability)
+     ------------------------- */
+  const domains = {
+    stem: {
+      label:'STEM',
+      careers:[
+        'Software Engineer','Data Scientist','AI Researcher','Machine Learning Engineer','Data Analyst',
+        'Cloud Architect','DevOps Engineer','Cybersecurity Specialist','Site Reliability Engineer','Web Developer',
+        'Mobile Developer','Systems Engineer','Robotics Engineer','Embedded Systems Engineer','Mechanical Engineer',
+        'Electrical Engineer','Civil Engineer','Biomedical Engineer','Environmental Engineer','Materials Scientist'
+      ]
+    },
+    creative: {
+      label:'Creative Fields',
+      careers:[
+        'Graphic Designer','UI/UX Designer','Product Designer','Animator','Illustrator',
+        'Game Developer','Game Designer','Art Director','Creative Director','Fashion Designer',
+        'Photographer','Interior Designer','Industrial Designer'
+      ]
+    },
+    medical:{
+      label:'Medical & Health',
+      careers:['Doctor','Surgeon','Nurse','Pharmacist','Dentist','Physiotherapist','Radiologist','Geneticist','Nutritionist','Public Health Specialist','Clinical Researcher','Psychologist']
+    },
+    business:{
+      label:'Business & Management',
+      careers:['Product Manager','Project Manager','Operations Manager','Business Analyst','Management Consultant','Entrepreneur','Marketing Manager','Financial Analyst','HR Specialist','Investment Banker']
+    },
+    humanities:{
+      label:'Social Sciences & Humanities',
+      careers:['Sociologist','Journalist','Historian','Writer','Linguist','Anthropologist','Curator']
+    },
+    education:{
+      label:'Education & Research',
+      careers:['Teacher','Professor','Instructional Designer','Research Scientist','Academic Advisor']
+    },
+    law:{
+      label:'Law & Governance',
+      careers:['Lawyer','Legal Advisor','Judge','Policy Analyst','Compliance Officer','Civil Servant']
+    },
+    environment:{
+      label:'Environment & Sustainability',
+      careers:['Environmental Scientist','Conservationist','Urban Planner','Ecologist','Renewable Energy Engineer']
+    },
+    trades:{
+      label:'Trades & Applied Professions',
+      careers:['Electrician','Plumber','Carpenter','Mechanic','Chef','Pilot','Architect','HVAC Technician']
+    },
+    media:{
+      label:'Media & Communication',
+      careers:['Journalist','Film Director','Producer','Video Editor','Content Creator','Social Media Manager']
+    },
+    sports:{
+      label:'Sports & Fitness',
+      careers:['Athlete','Coach','Sports Physiotherapist','Sports Analyst','Fitness Trainer']
+    }
+  };
+
+  const careerSkills = {
+    'Software Engineer':['Programming (Python/Java/C++)','Data Structures & Algorithms','System Design','Version Control (Git)','Testing & Debugging'],
+    'Data Scientist':['Statistics & Probability','Python/R','Machine Learning','Data Wrangling','Data Visualization'],
+    'AI Researcher':['Machine Learning Theory','Deep Learning','Research Methods','Mathematics (Linear Algebra)','Scientific Writing'],
+    'Product Manager':['Product Strategy','Roadmapping','Stakeholder Communication','Data-Informed Decisions','Prioritization'],
+    'UI/UX Designer':['User Research','Wireframing','Prototyping (Figma)','Information Architecture','Usability Testing'],
+    'Doctor':['Medical Knowledge','Clinical Diagnosis','Patient Communication','Medical Ethics','Procedures'],
+    'Graphic Designer':['Visual Design','Typography','Adobe Suite','Branding','Layout'],
+    'Cybersecurity Specialist':['Network Security','Penetration Testing','Incident Response','Cryptography','Security Policies'],
+    'Mechanical Engineer':['CAD','Thermodynamics','Materials','Manufacturing','Problem Solving'],
+    'Journalist':['Reporting','Interviewing','Writing','Verification','Multimedia Production'],
+    'Teacher':['Lesson Planning','Classroom Management','Assessment Design','Pedagogy','Communication'],
+    'Lawyer':['Legal Research','Advocacy','Contract Law','Legal Writing','Negotiation'],
+    'Environmental Scientist':['Field Sampling','GIS','Data Analysis','Environmental Policy','Report Writing']
+  };
+
+  // Fallback skill generator
+  function fallbackSkills(career){ const w = career.split(/\s+/)[0]; return [w + ' Fundamentals','Communication','Problem Solving']; }
+
+  /* -------------------------
+     UI refs
+     ------------------------- */
+  const interestDropdown = document.getElementById('interestDropdown');
+  const interestsInput = document.getElementById('interests');
+  const chatInput = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('sendBtn');
+  const chatArea = document.getElementById('chat-area');
+  const selectedPanel = document.getElementById('selected-career-panel');
+  const analyzeBtn = document.getElementById('analyzeBtn');
+  const sampleBtn = document.getElementById('sampleBtn');
+  const roadmapEl = document.getElementById('roadmap');
+
+  /* -------------------------
+     Simple chat: try backend /api/chat, else fallback
+     ------------------------- */
+  function appendChat(text, from='bot'){
+    const d = document.createElement('div'); d.className = 'msg ' + (from==='user'?'user':'bot'); d.textContent = text;
+    chatArea.appendChild(d); chatArea.scrollTop = chatArea.scrollHeight;
+  }
+  sendBtn.addEventListener('click', async ()=>{
+    const text = chatInput.value.trim(); if(!text) return; appendChat(text,'user'); chatInput.value='';
+    // try backend (placeholder). Connect your own AI here.
+    try{
+      const res = await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,interests:interestsInput.value})});
+      if(!res.ok) throw new Error('no backend');
+      const j = await res.json(); appendChat(j.reply || 'No reply from API');
+    }catch(e){
+      // fallback conversational tips
+      appendChat('Hint: describe your preferences (work style, remote/on-site, research vs product) and I will suggest career fits.');
+    }
+  });
+
+  // enter to send
+  chatInput.addEventListener('keydown', (ev)=>{ if(ev.key==='Enter'){ sendBtn.click(); }});
+
+  /* -------------------------
+     D3 dendrogram with zoom & pan + reset
+     ------------------------- */
+  const dendContainer = d3.select('#dendrogram');
+  const svg = dendContainer.append('svg').attr('width','100%').attr('height','100%').attr('role','img').attr('aria-label','career tree');
+  // main group that will be zoomed/panned
+  const mainG = svg.append('g').attr('transform','translate(140,40)');
+
+  // zoom behavior
+  const zoom = d3.zoom().scaleExtent([0.35, 2.5]).on('zoom', (event)=>{
+    mainG.attr('transform', event.transform);
+  });
+  svg.call(zoom);
+
+  document.getElementById('resetView').addEventListener('click', ()=> {
+    svg.transition().duration(600).call(zoom.transform, d3.zoomIdentity.translate(140,40).scale(1));
+  });
+
+  // draw tree from given hierarchical data
+  function drawDendrogram(data){
+    mainG.selectAll('*').remove();
+    const width = dendContainer.node().clientWidth;
+    const height = Math.max(720, 24 + (data.children ? data.children.length * 40 : 200));
+    svg.attr('height', height);
+
+    const root = d3.hierarchy(data);
+    // Give larger horizontal spacing so labels don't overlap
+    const tree = d3.tree().size([height - 80, Math.max(900, width * 1.2)]);
+    tree(root);
+
+    // links
+    mainG.selectAll('path.link')
+      .data(root.links())
+      .join('path')
+      .attr('class','link')
+      .attr('d', d3.linkHorizontal().x(d=>d.y).y(d=>d.x))
+      .attr('fill','none')
+      .attr('stroke','#e6eef8')
+      .attr('stroke-width',1.6);
+
+    // nodes
+    const node = mainG.selectAll('g.node')
+      .data(root.descendants())
+      .join('g')
+      .attr('class','node')
+      .attr('transform', d => `translate(${d.y},${d.x})`);
+
+    node.append('circle')
+      .attr('r', d => d.children ? 8 : 6)
+      .attr('fill', d => d.children ? '#2563eb' : '#06b6d4')
+      .attr('stroke','#123a8a')
+      .attr('stroke-width', 1.2)
+      .style('cursor','pointer')
+      .on('click', (e,d)=>{ if(!d.children) selectCareer(d.data.name); });
+
+    node.append('text')
+      .attr('x', d => d.children ? -12 : 12)
+      .attr('y', 4)
+      .attr('text-anchor', d => d.children ? 'end' : 'start')
+      .text(d => d.data.name)
+      .style('font-size','13px')
+      .style('font-weight',600)
+      .style('cursor','pointer')
+      .on('click', (e,d)=>{ if(!d.children) selectCareer(d.data.name); });
+  }
+
+  /* -------------------------
+     Build a tree based on interests input or domain selection
+     ------------------------- */
+  function buildTree(){
+    const raw = (interestsInput.value || interestDropdown.value || 'stem').split(',').map(s=>s.trim()).filter(Boolean);
+    const root = { name: 'Career Paths', children: [] };
+    raw.forEach(token=>{
+      const key = token.toLowerCase();
+      if(domains[key]){
+        root.children.push({ name: domains[key].label, children: domains[key].careers.map(c=>({ name: c }))});
+      } else {
+        // fuzzy match careers across domains
+        const matches = [];
+        Object.values(domains).forEach(d=>{
+          d.careers.forEach(c=>{
+            if(c.toLowerCase().includes(key)) matches.push(c);
+          });
+        });
+        if(matches.length){
+          root.children.push({ name: `Matches for "${token}"`, children: matches.map(c=>({ name:c }))});
+        } else {
+          root.children.push({ name: capitalize(token), children: [{ name: 'Explore — try the chat' }]});
+        }
+      }
+    });
+    if(root.children.length===0) root.children.push({ name:'Explore', children:[{name:'Talk to AI'}]});
+    drawDendrogram(root);
+    // reset zoom to center nicely
+    svg.transition().duration(600).call(zoom.transform, d3.zoomIdentity.translate(140,40).scale(1));
+  }
+
+  function capitalize(s){ return s && s[0] ? s[0].toUpperCase()+s.slice(1) : s; }
+
+  // wire dropdown -> update
+  interestDropdown.addEventListener('change', ()=>{
+    if(interestDropdown.value) interestsInput.value = interestDropdown.value;
+    buildTree();
+  });
+
+  // sample button
+  sampleBtn.addEventListener('click', ()=>{
+    interestDropdown.value = 'stem';
+    interestsInput.value = 'stem';
+    buildTree();
+    appendChat('Loaded sample domain: STEM (you can now click a career).','bot');
+  });
+
+  /* -------------------------
+     Career selection -> show skill sliders + progress
+     ------------------------- */
+  let selectedCareer = null;
+  function selectCareer(name){
+    selectedCareer = name;
+    const skills = careerSkills[name] || fallbackSkills(name);
+    selectedPanel.innerHTML = `<h3>${name}</h3><p class="muted">Rate your level (0–5) for each skill — target level is 4 for job-readiness.</p>`;
+    const wrapper = document.createElement('div');
+    skills.forEach(skill=>{
+      const row = document.createElement('div'); row.className='skill-row';
+      const label = document.createElement('div'); label.className='skill-label'; label.textContent = skill;
+      const slider = document.createElement('input'); slider.type='range'; slider.min=0; slider.max=5; slider.value=0; slider.className='slider';
+      slider.dataset.skill = skill;
+      const prog = document.createElement('div'); prog.className='progress'; const inner = document.createElement('i'); prog.appendChild(inner);
+      const pct = document.createElement('div'); pct.className='readiness'; pct.textContent='0%';
+      slider.addEventListener('input', ()=> { updateProgress(skill, slider.value, inner, pct); });
+      row.appendChild(label); row.appendChild(slider); row.appendChild(prog); row.appendChild(pct);
+      wrapper.appendChild(row);
+    });
+    const summary = document.createElement('div'); summary.style.marginTop='12px'; summary.innerHTML=`<strong>Overall readiness:</strong> <span id="overall-readiness">0%</span>`;
+    wrapper.appendChild(summary);
+    selectedPanel.appendChild(wrapper);
+    roadmapEl.innerHTML = '<h3>Personalized Learning Roadmap</h3><small class="muted">Rate skills and click Analyze Skill Gap to generate a roadmap.</small>';
+  }
+
+  function updateProgress(skill, val, innerEl, pctEl){
+    const target = 4;
+    const pct = Math.round((val / target) * 100); const bounded = Math.max(0, Math.min(100, pct));
+    innerEl.style.width = bounded + '%';
+    pctEl.textContent = bounded + '%';
+    computeOverallReadiness();
+  }
+
+  function computeOverallReadiness(){
+    const sliders = selectedPanel.querySelectorAll('input[type=range]');
+    if(!sliders.length){ document.getElementById('overall-readiness') && (document.getElementById('overall-readiness').textContent = '—'); return; }
+    let total=0;
+    sliders.forEach(s=> total += (Number(s.value)/4)*100);
+    const avg = Math.round(total / sliders.length);
+    const el = document.getElementById('overall-readiness');
+    if(el) el.textContent = avg + '%';
+  }
+
+  /* -------------------------
+     Analyze -> build gaps + phased roadmap
+     ------------------------- */
+  analyzeBtn.addEventListener('click', ()=>{
+    if(!selectedCareer){ alert('Please select a career on the dendrogram first.'); return; }
+    const sliders = selectedPanel.querySelectorAll('input[type=range]');
+    const gaps = [];
+    sliders.forEach(s=>{
+      const skill = s.dataset.skill;
+      const user = Number(s.value);
+      const target = 4;
+      const gap = Math.max(0, target - user);
+      gaps.push({ skill, user, target, gap });
+    });
+    gaps.sort((a,b)=>b.gap - a.gap);
+    // phases: each gap point ~ 3 weeks
+    const phases = gaps.filter(g=>g.gap>0).map((g,i)=>({ skill:g.skill, weeks:g.gap*3, tasks: suggestTasks(g.skill,g.gap) }));
+    // render
+    let html = `<h3>${selectedCareer} — Skill gap analysis</h3><div class="muted">Overall readiness: ${document.getElementById('overall-readiness') ? document.getElementById('overall-readiness').textContent : '—'}</div>`;
+    if(!phases.length){ html += '<div class="muted" style="margin-top:8px">Your profile looks ready — consider building a portfolio or applying to junior roles.</div>'; roadmapEl.innerHTML = html; return; }
+    html += '<div style="margin-top:10px"><strong>Phased Learning Roadmap</strong></div>';
+    phases.forEach((p, idx)=>{
+      html += `<div class="phase"><div style="display:flex;justify-content:space-between;align-items:center"><div><strong>Phase ${idx+1}: ${p.skill}</strong><div class="muted">Estimated: ${p.weeks} weeks</div></div><div class="tag">${p.weeks}w</div></div><ul style="margin-top:8px">`;
+      p.tasks.forEach(t=> html += `<li>${t}</li>`);
+      html += `</ul></div>`;
+    });
+    html += '<div style="margin-top:12px" class="muted">Tip: combine short courses, hands-on projects, and mentorship. Reassess after each phase.</div>';
+    roadmapEl.innerHTML = html;
+  });
+
+  function suggestTasks(skill, gap){
+    const s = skill.toLowerCase();
+    if(s.includes('program')||s.includes('python')||s.includes('java')||s.includes('c++')) return ['Build 2 practical projects (4–8 hrs each)','Follow intermediate course','Practice coding 3–5 times/week'];
+    if(s.includes('machine')||s.includes('deep learn')||s.includes('ml')) return ['Build an end-to-end ML project','Take hands-on DL course','Deploy simple model'];
+    if(s.includes('system')||s.includes('architecture')) return ['Read system design primers','Sketch 3 system designs','Mock interviews'];
+    if(s.includes('statistics')||s.includes('data')) return ['Complete statistics fundamentals','Analyze public datasets','Create visual stories with charts'];
+    if(s.includes('ux')||s.includes('user research')||s.includes('wire')) return ['Design 3 wireframes','Run 2 user interviews','Build interactive prototype in Figma'];
+    if(s.includes('communication')||s.includes('writing')) return ['Write 3 long-form pieces','Join feedback group','Practice presenting'];
+    if(s.includes('clinical')||s.includes('patient')||s.includes('diagnos')) return ['Complete supervised practice','Shadow a professional','Attend clinical workshops'];
+    return ['Take a curated short course','Build a small project','Find a mentor or study group'];
+  }
+
+  /* -------------------------
+     Utility & initial render
+     ------------------------- */
+  function autofillSample(){ interestDropdown.value='stem'; interestsInput.value='stem'; buildTree(); appendChat('Sample loaded: STEM','bot'); }
+  sampleBtn.addEventListener('click', autofillSample);
+
+  function buildInitial(){ interestsInput.value = 'stem, creative'; buildTree(); appendChat('Welcome! Click a career node to begin — or ask me for suggestions.','bot'); }
+  buildInitial();
+
+  // expose some functions for debug if needed
+  window.buildTree = buildTree;
+  window.selectCareer = selectCareer;
+  window.suggestTasks = suggestTasks;
+  </script>
+</body>
+</html>
